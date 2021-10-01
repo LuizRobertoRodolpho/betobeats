@@ -1,0 +1,190 @@
+const fs = require('fs');
+const axios = require('axios');
+const cheerio = require('cheerio');
+const NodeID3 = require('node-id3');
+const { stringify } = require('querystring');
+const beatportUrl = 'https://www.beatport.com/search?q='
+const folder = '/Users/betorodolpho/Documents/musics/'
+const musics = new Array()
+const options = {
+    include: [],    // only read the specified tags (default: all)
+    exclude: []     // don't read the specified tags (default: [])
+}
+
+class Music {
+    filename;
+    genre;
+    artist;
+    title;
+
+    constructor(filename) {
+        this.filename = filename
+    }
+
+    get normalizedName() {
+        return normalize(this.filename)
+    }
+
+    get url() {
+        return this.getUrl()
+    }
+
+    get localpath() {
+        return this.getLocalPath()
+    }
+
+    getUrl() {
+        let uri = replaceAll(this.normalizedName, ' ', '+')
+        return beatportUrl + encodeURI(uri)
+    }
+
+    getLocalPath() {
+        return folder + this.filename
+    }
+
+    applyTag() {
+        updateTags(this)
+    }
+}
+
+try {
+    parseDirectory()
+
+    if (musics.length == 0)
+        return
+
+    Promise.all(getBeatportTags(musics))
+        .then((results) => {
+            results.forEach((music) => {
+                music.applyTag()
+            })
+        })
+        .catch(error => { throw error })
+    
+    // console.log(musics);
+} catch (err) {
+    console.log(err)
+}
+
+async function parseDirectory() {
+    try {
+        fs.readdirSync(folder)
+            .forEach(filename => {
+                if (filename != '.DS_Store') {
+                        let m = new Music(filename)
+                        // if tag is null
+                        if (isTagMissing(m.localpath)) {
+                            musics.push(m)
+                        }
+                    //}
+                }
+            })
+
+        console.log(`_______________________________\n`)
+        console.log(`Pending Tags: ${musics.length}`)
+        console.log(`_______________________________`)
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+function updateTags(music) {
+    // const success = NodeID3.write(tags, filepath)
+    let tags = {
+        genre: music.genre,
+        artist: music.artist,
+        title: music.title
+    }
+    const success = NodeID3.update(tags, music.localpath, options)
+    console.log(`success: ${success}`)
+
+    const filetags = NodeID3.read(music.localpath)
+    console.log(filetags)
+}
+
+function isTagMissing(filepath) {
+    const filetags = NodeID3.read(filepath)
+    console.log(filetags)
+    return !filetags.genre || !filetags.title || !filetags.artist
+}
+
+function normalize(file) {
+    return file.replace("[^a-zA-Z0-9]", "")
+        .replace(/[\])}[{(]/g, '')
+        .replace(" - ", " ")
+        .replace("  ", " ")
+        .replace("-'s", "'s")
+        .replace("n-'", "n'")
+        .replace("&", " ")
+        .replace(".mp3", "")
+        .replace(".flac", "")
+}
+
+function replaceAll(str, find, replace) {
+    return str.replace(new RegExp(find, 'g'), replace);
+}
+
+function getBeatportTags(musics) {
+    console.log("Crawling data...")
+
+    return musics.map((music) => {
+        return fetchData(music.url)
+            .then((res) => {
+                const html = res.data;
+                const $ = cheerio.load(html);
+                let genre;
+                let artist;
+                let title;
+                const tracks = $('.bucket-item');
+                tracks.each(function () {
+                    genre = $(this).find('.buk-track-genre')
+                        .text()
+                        .replace(/\s\s+/g, ' ')
+                        .replace(/(\r\n|\n|\r)/gm, "")
+                        .trim();
+                    artist = $(this).find('.buk-track-artists')
+                        .text()
+                        .replace(/\s\s+/g, ' ')
+                        .replace(/(\r\n|\n|\r)/gm, "")
+                        .trim();
+                    title = $(this).find('.buk-track-primary-title')
+                        .text()
+                        .replace(/\s\s+/g, ' ')
+                        .replace(/(\r\n|\n|\r)/gm, "")
+                        .trim()
+
+                    if (genre)
+                        music.genre = genre
+
+                    if (artist)
+                        music.artist = artist
+
+                    if (title)
+                        music.title = title
+
+                    if (genre && artist && title) {
+                        console.log(`[${music.genre}] ${music.artist} - ${music.title}`)
+                        return false
+                    }
+                })
+                if (!music.genre || !music.artist || !music.title) {
+                    console.log('prop missing')
+                }
+                return music
+            })
+            .catch((err) => {
+                console.log(`err ${err}`)
+            })
+    })
+}
+
+async function fetchData(url) {
+    // make http call to url
+    let response = await axios(url).catch((err) => console.log(err));
+
+    if (response.status !== 200) {
+        console.log("Error occurred while fetching data");
+        return;
+    }
+    return response;
+}
