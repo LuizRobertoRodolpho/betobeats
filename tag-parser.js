@@ -1,8 +1,10 @@
-const fs = require('fs');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const NodeID3 = require('node-id3');
-const { stringify } = require('querystring');
+'use strict'
+
+const fs = require('fs')
+const axios = require('axios')
+const cheerio = require('cheerio')
+const NodeID3 = require('node-id3')
+const strings = require('./features/strings')
 const beatportUrl = 'https://www.beatport.com/search?q='
 const folder = '/Users/betorodolpho/Documents/musics/'
 const musics = new Array()
@@ -22,7 +24,7 @@ class Music {
     }
 
     get normalizedName() {
-        return normalize(this.filename)
+        return strings.normalize(this.filename)
     }
 
     get url() {
@@ -106,18 +108,6 @@ function isTagMissing(filepath) {
     const filetags = NodeID3.read(filepath)
     console.log(filetags)
     return !filetags.genre || !filetags.title || !filetags.artist
-}
-
-function normalize(file) {
-    return file.replace("[^a-zA-Z0-9]", "")
-        .replace(/[\])}[{(]/g, '')
-        .replace(" - ", " ")
-        .replace("  ", " ")
-        .replace("-'s", "'s")
-        .replace("n-'", "n'")
-        .replace("&", " ")
-        .replace(".mp3", "")
-        .replace(".flac", "")
 }
 
 function replaceAll(str, find, replace) {
