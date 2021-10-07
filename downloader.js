@@ -16,6 +16,7 @@ const download = async (searchText, callback) => {
             headless: false,
             slowMo: 150,
             devtools: true,
+            defaultViewport: null,
             args: ['--disable-web-security', '--disable-features=IsolateOrigins,site-per-process']
         });
         const page = await browser.newPage();
@@ -40,7 +41,6 @@ const download = async (searchText, callback) => {
         try {
             await page.waitForSelector('tbody[id=results_t]');
         } catch (err) {
-            console.log(`NOT FOUND: ${searchText}`)
             await browser.close()
             callback(`[missing] ${searchText}`)
             return
@@ -61,13 +61,36 @@ const download = async (searchText, callback) => {
             })
         })
 
-        await page.waitForTimeout(5000)
-        let frame = await page.frames().find(f => f.name().startsWith("a-"));
+
+        let frame
+
+        while (!frame) {
+            await page.waitForTimeout(3000)
+            frame = await page.frames().find(f => f.name().startsWith("a-"));
+        }
+
         if (frame) {
             // const dttt = await frame.waitForSelector('div.recaptcha-checkbox-border');
             const rcbtn = await frame.waitForSelector('span.recaptcha-checkbox');
             if (rcbtn) {
                 await rcbtn.click();
+                await page.waitForTimeout(2000)
+                // id="rc-imageselect"
+
+                let rcResolved = false
+
+                while (!rcResolved) {
+                    rcResolved = await page.evaluate(_ => {
+                        var rcimg = document.querySelectorAll("iframe[title='recaptcha challenge']")
+                        if (!rcimg)
+                            return true;
+    
+                        if (grecaptcha.getResponse()) {
+                            return true
+                        }
+                        return false
+                    });
+                }
             }
         } else {
             frame = await document.waitForSelector("[title='reCAPTCHA']")
@@ -79,11 +102,12 @@ const download = async (searchText, callback) => {
         }
 
         // click ok ------------
-        await page.waitForTimeout(3000)
+        await page.waitForTimeout(2000)
         await page.waitForXPath(downloadFinal)
         await page.evaluate(_ => {
             document.getElementsByClassName("dl")[0].click()
         });
+        await page.waitForTimeout(5000)
         return callback(`[true] ${searchText}`)
         // ---------------
     } catch (err) {

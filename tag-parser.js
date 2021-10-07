@@ -6,7 +6,7 @@ const cheerio = require('cheerio')
 const NodeID3 = require('node-id3')
 const strings = require('./features/strings')
 const beatportUrl = 'https://www.beatport.com/search?q='
-const folder = '/Users/betorodolpho/Documents/musics/'
+const folder = '/Users/betorodolpho/Documents/musics.nosync/'
 const musics = new Array()
 const options = {
     include: [],    // only read the specified tags (default: all)

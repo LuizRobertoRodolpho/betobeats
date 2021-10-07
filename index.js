@@ -4,9 +4,9 @@ const downloader = require('./downloader')
 const db = require('./features/db')
 
 const beatportLists = [
-    "https://www.beatport.com/top-100",
-    // "https://www.beatport.com/genre/tech-house/11/top-100",
-    // "https://www.beatport.com/genre/afro-house/89/tracks?per-page=150"
+    //"https://www.beatport.com/top-100",
+    "https://www.beatport.com/artist/black-coffee/65597/tracks",
+    //"https://www.beatport.com/genre/afro-house/89/tracks?page=3&per-page=150"
 ];
 
 let pendingDownloads = []
