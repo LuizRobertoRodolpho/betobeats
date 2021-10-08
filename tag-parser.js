@@ -7,6 +7,9 @@ const NodeID3 = require('node-id3')
 const strings = require('./features/strings')
 const beatportUrl = 'https://www.beatport.com/search?q='
 const folder = '/Users/betorodolpho/Documents/musics.nosync/'
+const cleanNames = false
+const dirtyOnNames = [' [www.slider.kz]']
+const tagMissingOnly = true
 const musics = new Array()
 const options = {
     include: [],    // only read the specified tags (default: all)
@@ -36,7 +39,7 @@ class Music {
     }
 
     getUrl() {
-        let uri = replaceAll(this.normalizedName, ' ', '+')
+        let uri = replaceAll(this.normalizedName, ' ', '+').toLowerCase()
         return beatportUrl + encodeURI(uri)
     }
 
@@ -50,11 +53,21 @@ class Music {
 }
 
 try {
+    if (cleanNames) {
+        cleanFilenames()
+    }
+
     parseDirectory()
 
     if (musics.length == 0)
         return
 
+    // var i, j, temporary, chunk = 5;
+    // for (i = 0, j = musics.length; i < j; i += chunk) {
+    //     temporary = musics.slice(i, i + chunk);
+    //     // do whatever
+
+    // }
     Promise.all(getBeatportTags(musics))
         .then((results) => {
             results.forEach((music) => {
@@ -62,23 +75,33 @@ try {
             })
         })
         .catch(error => { throw error })
-    
-    // console.log(musics);
 } catch (err) {
     console.log(err)
 }
 
+async function cleanFilenames() {
+    // clean dirty from filename
+    var fs = require('fs');
+    fs.readdirSync(folder)
+        .forEach(filename => {
+            if (filename != '.DS_Store' && filename.indexOf(dirtyOnNames[0], 0)) {
+                fs.rename(`${folder}/${filename}`, `${folder}/${filename.replace(dirtyOnNames[0], '')}`, function (err) {
+                    if (err) console.log('ERROR: ' + err);
+                });
+            }
+        })
+}
+
 async function parseDirectory() {
     try {
+        // update tags
         fs.readdirSync(folder)
             .forEach(filename => {
                 if (filename != '.DS_Store') {
-                        let m = new Music(filename)
-                        // if tag is null
-                        if (isTagMissing(m.localpath)) {
-                            musics.push(m)
-                        }
-                    //}
+                    let m = new Music(filename)
+                    if (!tagMissingOnly || isTagMissing(m.localpath)) {
+                        musics.push(m)
+                    }
                 }
             })
 

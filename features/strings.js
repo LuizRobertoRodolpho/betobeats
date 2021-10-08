@@ -3,6 +3,8 @@
 const normalize = (track) => {
     return track.replace("[^a-zA-Z0-9]", "")
         .replace(/[\])}[{(]/g, '')
+        .replace(".feat ", "")
+        .replace(" .feat", "")
         .replace(" - ", " ")
         .replace("  ", " ")
         .replace("-'s", "'s")
