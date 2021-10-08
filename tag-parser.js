@@ -2,14 +2,18 @@
 
 const fs = require('fs')
 const axios = require('axios')
+const axiosThrottle = require('axios-request-throttle')
+axiosThrottle.use(axios, { requestsPerSecond: 3 })
+
 const cheerio = require('cheerio')
 const NodeID3 = require('node-id3')
 const strings = require('./features/strings')
 const beatportUrl = 'https://www.beatport.com/search?q='
 const folder = '/Users/betorodolpho/Documents/musics.nosync/'
+//const folder = '/Users/betorodolpho/Desktop/musicbkp/'
 const cleanNames = false
 const dirtyOnNames = [' [www.slider.kz]']
-const tagMissingOnly = true
+const tagMissingOnly = false
 const musics = new Array()
 const options = {
     include: [],    // only read the specified tags (default: all)
@@ -62,19 +66,16 @@ try {
     if (musics.length == 0)
         return
 
-    // var i, j, temporary, chunk = 5;
-    // for (i = 0, j = musics.length; i < j; i += chunk) {
-    //     temporary = musics.slice(i, i + chunk);
-    //     // do whatever
-
-    // }
-    Promise.all(getBeatportTags(musics))
+        Promise.all(getBeatportTags(musics))
         .then((results) => {
             results.forEach((music) => {
                 music.applyTag()
             })
         })
-        .catch(error => { throw error })
+        .catch(error => { 
+            console.log(error)
+            throw error
+        })
 } catch (err) {
     console.log(err)
 }
