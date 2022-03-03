@@ -109,3 +109,10 @@ downloads/
 
 #ios
 .DS_Store
+
+# extras
+downloads.txt
+package-lock.json
+server-old.js
+../betobeats-web
+../data/

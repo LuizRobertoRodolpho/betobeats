@@ -1,6 +1,8 @@
-FROM node:16.10-stretch
+FROM node:16.10-alpine
 
 RUN mkdir app
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 RUN rm -rf node_modules
 
@@ -14,4 +16,4 @@ COPY . .
 
 EXPOSE 3006
 
-CMD [ "node", "index.js" ]
+CMD [ "node", "server.js" ]
