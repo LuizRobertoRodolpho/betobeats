@@ -1,0 +1,43 @@
+# Minimum required to run betobeats System
+# Some features may not be available
+# To run all services, use docker-compose-full.yaml
+---
+version: '2.1'
+services:
+  betobeats-api:
+    build:
+      context: ./betobeats-api
+      dockerfile: ./Dockerfile
+    command: node server.js
+    ports:
+      - 3006:3006
+    #env_file: ./betobeats-api/.env
+    environment:
+      - environment=local
+    volumes:
+      - ./betobeats-api:/app
+      - /app/node_modules/
+
+  # betobeats-web:
+  #   build:
+  #     context: ./betobeats-web
+  #     dockerfile: ./Dockerfile
+  #     args:
+  #       SSH_KEY: $SSH_KEY
+  #   command: npm start
+  #   ports:
+  #     - 3007:8081
+  #   environment:
+  #     - ENVIRONMENT=local
+  #   volumes:
+  #     - ./betobeats-web:/app
+  #   depends_on:
+  #     - betobeats-api
+
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - ./data:/data/db
+    ports:
+      - "27017:27017"
+    command: mongod --logpath=/dev/null
