@@ -1,4 +1,4 @@
-FROM node:16.10-alpine
+FROM node:14 as build
 
 RUN mkdir app
 
@@ -16,4 +16,4 @@ COPY . .
 
 EXPOSE 3006
 
-CMD [ "node", "server.js" ]
+CMD [ "node", "start.js" ]

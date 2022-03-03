@@ -12,11 +12,13 @@
     "axios": "^0.21.1",
     "axios-request-throttle": "^1.0.0",
     "cheerio": "^1.0.0-rc.10",
+    "cors": "^2.8.5",
     "flac-to-mp3": "^1.0.4",
     "node-id3": "^0.2.3",
-    "puppeteer": "^10.4.0",
+    "puppeteer": "^13.3.2",
     "puppeteer-extra": "^3.2.3",
     "puppeteer-extra-plugin-adblocker": "^2.12.0",
-    "puppeteer-extra-plugin-stealth": "^2.8.1"
+    "puppeteer-extra-plugin-stealth": "^2.8.1",
+    "restify": "^8.6.1"
   }
 }

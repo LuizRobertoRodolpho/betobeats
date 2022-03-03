@@ -1,5 +1,3 @@
-'use strict'
-
 const restify = require('restify')
 const server = restify.createServer()
 const cors = require('cors')
@@ -13,14 +11,16 @@ const initialize = async () => {
     server.use(restify.plugins.queryParser())
     server.use(restify.plugins.bodyParser())
     server.use(cors())
-    server.opts('/*', acceptOpts)
+    // server.use(auth.initialize())
+    // server.use(tokenParser)
+    // server.use(routeWall)
+    // server.opts('/*', acceptOpts)
+    // server.on('BadRequest', validationError)
+    // server.on('Unauthorized', validationError)
+    // server.on('Forbidden', validationError)
 
-    try {
-        server.listen(port, () => console.info(`Server started @ ${port}`))
-        return server
-    } catch (error) {
-        console.error(new Error(`Failed to create routes: ${error}`))
-    }
+    server.listen(port, () => console.info(`Server started @ ${port}`))
+    return server
 }
 
 const close = async () => {
