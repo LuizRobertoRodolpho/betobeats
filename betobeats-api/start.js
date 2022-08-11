@@ -3,6 +3,5 @@ const server = require('./server')
 
 ;(async () => {
   //await db()
-  console.log("aaaaaaaaaaa")
   await server.initialize()
 })()

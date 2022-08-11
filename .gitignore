@@ -109,3 +109,7 @@ downloads/
 
 #ios
 .DS_Store
+
+#other
+data
+._data
